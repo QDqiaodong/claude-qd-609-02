@@ -43,6 +43,9 @@
         <div class="card-foot">
           <span class="muted">
             门槛：{{ minLevelText(course.level) }}
+            <template v-if="course.reqBowType">
+              ｜需持 <b class="cert-need">{{ course.reqBowTypeName }} {{ course.reqDistance }}米</b> 有效认证
+            </template>
           </span>
           <el-button
             size="small"
@@ -95,6 +98,21 @@
         </el-form-item>
         <el-form-item label="人数上限"><el-input-number v-model="createForm.capacity" :min="1" :max="30" /></el-form-item>
         <el-form-item label="场地"><el-input v-model="createForm.venue" placeholder="如 二号教学区" /></el-form-item>
+        <el-form-item label="认证要求">
+          <div style="display: flex; gap: 8px; width: 100%">
+            <el-select v-model="createForm.reqBowType" clearable placeholder="不要求" style="flex: 1">
+              <el-option label="反曲弓" value="RECURVE" />
+              <el-option label="复合弓" value="COMPOUND" />
+              <el-option label="传统弓" value="TRADITIONAL" />
+            </el-select>
+            <el-select v-model="createForm.reqDistance" :disabled="!createForm.reqBowType" placeholder="射距" style="width: 120px">
+              <el-option v-for="d in [10, 18, 30, 50]" :key="d" :label="`${d} 米`" :value="d" />
+            </el-select>
+          </div>
+          <small class="muted" style="display:block;line-height:1.5">
+            报名时校验该会员是否持有覆盖此弓种 / 射距的有效认证（高射距覆盖低射距）
+          </small>
+        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="createVisible = false">取消</el-button>
@@ -124,7 +142,9 @@ const createForm = reactive({
   level: 'BASIC',
   classTime: '',
   capacity: 8,
-  venue: '一号教学区'
+  venue: '一号教学区',
+  reqBowType: null,
+  reqDistance: null
 })
 
 function levelType(level) {
@@ -175,10 +195,16 @@ async function submitCreate() {
     ElMessage.warning('请填写课程名与上课时间')
     return
   }
+  if (createForm.reqBowType && !createForm.reqDistance) {
+    ElMessage.warning('选择了认证弓种，还需选择要求的射距')
+    return
+  }
   await courseApi.create({ ...createForm, courseName: createForm.courseName.trim(), coach: createForm.coach.trim() })
   ElMessage.success('课程已发布')
   createVisible.value = false
   createForm.courseName = ''
+  createForm.reqBowType = null
+  createForm.reqDistance = null
   await loadCourses()
 }
 
@@ -298,5 +324,9 @@ onMounted(async () => {
   margin-top: auto;
   padding-top: 4px;
   border-top: 1px dashed var(--line);
+}
+
+.cert-need {
+  color: #00695c;
 }
 </style>

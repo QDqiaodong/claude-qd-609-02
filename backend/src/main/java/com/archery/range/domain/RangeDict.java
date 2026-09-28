@@ -85,6 +85,9 @@ public final class RangeDict {
             "COMPETITION", "GOLD");
 
     // ---------------- 器材 ----------------
+    /** 弓种：认证、回合与部分课程共用同一套口径 */
+    public static final List<String> BOW_TYPES = List.of("RECURVE", "COMPOUND", "TRADITIONAL");
+
     private static final Map<String, String> EQUIP_TYPE = Map.of(
             "RECURVE", "反曲弓",
             "COMPOUND", "复合弓",
@@ -151,6 +154,58 @@ public final class RangeDict {
             "BACK_PENDING", "退回待处置",
             "CLEARED", "两项复核均通过",
             "RELEASE", "复射放行");
+
+    // ---------------- 弓种能力认证 ----------------
+    /** 认证申请状态机 */
+    private static final Map<String, String> CERT_STATUS = Map.ofEntries(
+            Map.entry("PENDING_REVIEW", "待复核"),
+            Map.entry("APPROVED", "已通过"),
+            Map.entry("REJECTED", "已驳回"),
+            Map.entry("NEED_MORE", "待补证据"),
+            Map.entry("EXPIRED", "已过期"),
+            Map.entry("REVOKED", "已撤回"),
+            Map.entry("SUPERSEDED", "已重新评定"));
+
+    /** 规则版本状态 */
+    private static final Map<String, String> CERT_RULE_STATUS = Map.of(
+            "ACTIVE", "当前版本",
+            "SUPERSEDED", "已废止");
+
+    /** 系统按规则快照给出的待复核初判 */
+    private static final Map<String, String> CERT_SYSTEM_RESULT = Map.of(
+            "MEETS_STANDARD", "达标待复核",
+            "BELOW_STANDARD", "未达标");
+
+    /** 证据回合被排除的原因（计入的回合原因为空） */
+    private static final Map<String, String> CERT_EXCLUDE_REASON = Map.of(
+            "NOT_SUBMITTED", "回合未完成（未提交），不能作为证据",
+            "BOW_MISMATCH", "弓种不匹配",
+            "OUT_OF_WINDOW", "超出证据窗口",
+            "MEMBER_MISMATCH", "不属于该会员");
+
+    /** 认证流转动作 */
+    private static final Map<String, String> CERT_ACTION = Map.ofEntries(
+            Map.entry("CREATE", "发起认证申请"),
+            Map.entry("SYSTEM_RESULT", "系统初判"),
+            Map.entry("APPROVE", "复核通过"),
+            Map.entry("REJECT", "复核驳回"),
+            Map.entry("REQUEST_MORE", "要求补充证据"),
+            Map.entry("RESUBMIT", "补充证据重新评定"),
+            Map.entry("REVOKE", "撤回认证"),
+            Map.entry("EXPIRE", "认证过期"),
+            Map.entry("SUPERSEDE", "重新评定取代旧认证"));
+
+    /** 复核决定动作（复核页） */
+    private static final Map<String, String> CERT_DECISION = Map.of(
+            "APPROVE", "通过",
+            "REJECT", "驳回",
+            "REQUEST_MORE", "要求补充证据");
+
+    /** 弓种规则代码前缀：RC 反曲 / CP 复合 / TD 传统 */
+    private static final Map<String, String> BOW_RULE_PREFIX = Map.of(
+            "RECURVE", "RC",
+            "COMPOUND", "CP",
+            "TRADITIONAL", "TD");
 
     // ---------------- 团体淘汰赛 ----------------
     /** 参赛队数只能是 4 或 8（对应两轮或三轮单淘汰） */
@@ -387,5 +442,48 @@ public final class RangeDict {
 
     public static String tournamentActionName(String action) {
         return action == null ? "" : TOURNAMENT_ACTION.getOrDefault(action, action);
+    }
+
+    // ---------------- 弓种能力认证取值 ----------------
+
+    public static boolean isValidBowType(String type) {
+        return type != null && BOW_TYPES.contains(type);
+    }
+
+    public static String bowTypeName(String type) {
+        return type == null ? "" : EQUIP_TYPE.getOrDefault(type, type);
+    }
+
+    public static String certStatusName(String status) {
+        return status == null ? "" : CERT_STATUS.getOrDefault(status, status);
+    }
+
+    public static String certRuleStatusName(String status) {
+        return status == null ? "" : CERT_RULE_STATUS.getOrDefault(status, status);
+    }
+
+    public static String certSystemResultName(String result) {
+        return result == null ? "" : CERT_SYSTEM_RESULT.getOrDefault(result, result);
+    }
+
+    public static String certExcludeReasonName(String reason) {
+        return reason == null ? "" : CERT_EXCLUDE_REASON.getOrDefault(reason, reason);
+    }
+
+    public static String certActionName(String action) {
+        return action == null ? "" : CERT_ACTION.getOrDefault(action, action);
+    }
+
+    public static String certDecisionName(String decision) {
+        return decision == null ? "" : CERT_DECISION.getOrDefault(decision, decision);
+    }
+
+    public static boolean isValidCertDecision(String decision) {
+        return decision != null && CERT_DECISION.containsKey(decision);
+    }
+
+    /** 弓种规则代码前缀：RECURVE→RC / COMPOUND→CP / TRADITIONAL→TD */
+    public static String bowRulePrefix(String bowType) {
+        return BOW_RULE_PREFIX.getOrDefault(bowType, "XX");
     }
 }

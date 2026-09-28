@@ -41,6 +41,14 @@ public class Course {
     @Column(nullable = false, length = 32)
     private String venue;
 
+    /** 入课要求的弓种认证；null 为不要求 */
+    @Column(name = "req_bow_type", length = 16)
+    private String reqBowType;
+
+    /** 入课要求的认证适用射距（米）；null 为不要求 */
+    @Column(name = "req_distance")
+    private Integer reqDistance;
+
     public Long getId() {
         return id;
     }
@@ -103,5 +111,21 @@ public class Course {
 
     public void setVenue(String venue) {
         this.venue = venue;
+    }
+
+    public String getReqBowType() {
+        return reqBowType;
+    }
+
+    public void setReqBowType(String reqBowType) {
+        this.reqBowType = reqBowType;
+    }
+
+    public Integer getReqDistance() {
+        return reqDistance;
+    }
+
+    public void setReqDistance(Integer reqDistance) {
+        this.reqDistance = reqDistance;
     }
 }

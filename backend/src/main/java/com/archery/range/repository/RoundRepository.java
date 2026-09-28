@@ -1,5 +1,7 @@
 package com.archery.range.repository;
 
+import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,6 +25,12 @@ public interface RoundRepository extends JpaRepository<Round, Long> {
     List<Round> findByStatusOrderByStartTimeDesc(String status);
 
     List<Round> findByMemberIdAndStatusOrderByStartTimeDesc(Long memberId, String status);
+
+    /** 会员在时间区间内的回合（证据窗口选回合用），按开始时间升序 */
+    List<Round> findByMemberIdAndStartTimeBetweenOrderByStartTimeAsc(
+            Long memberId, LocalDateTime from, LocalDateTime until);
+
+    List<Round> findByIdIn(Collection<Long> ids);
 
     boolean existsByRoundNo(String roundNo);
 

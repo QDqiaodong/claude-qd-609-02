@@ -20,7 +20,10 @@ public final class CourseDtos {
             @NotBlank(message = "请选择课程等级") String level,
             @NotNull(message = "请选择上课时间") LocalDateTime classTime,
             @NotNull(message = "请填写人数上限") Integer capacity,
-            @NotBlank(message = "请填写场地") String venue) {
+            @NotBlank(message = "请填写场地") String venue,
+            /** 入课要求的弓种认证；为空表示不要求 */
+            String reqBowType,
+            Integer reqDistance) {
     }
 
     public record EnrollReq(@NotNull(message = "请选择会员") Long memberId) {
@@ -40,6 +43,9 @@ public final class CourseDtos {
             Integer enrolled,
             String venue,
             Boolean full,
+            String reqBowType,
+            String reqBowTypeName,
+            Integer reqDistance,
             List<EnrollView> enrolls) {
     }
 }

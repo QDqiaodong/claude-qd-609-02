@@ -10,7 +10,7 @@
 
     <!-- 开一个新回合 -->
     <div class="panel">
-      <div class="panel-title">开新回合 <small>选会员 → 选箭道 → 选一组 6 支或 12 支</small></div>
+      <div class="panel-title">开新回合 <small>选会员 → 选箭道 → 选弓种 → 选一组 6 支或 12 支</small></div>
       <div class="start-row">
         <el-select v-model="startForm.memberId" placeholder="会员" style="width: 210px">
           <el-option v-for="m in members" :key="m.id" :label="`${m.name} · ${m.cardNo}`" :value="m.id" />
@@ -24,12 +24,20 @@
             :disabled="l.status === 'MAINTENANCE' || l.status === 'LOCKED'"
           />
         </el-select>
+        <el-select v-model="startForm.bowType" placeholder="弓种" style="width: 130px">
+          <el-option label="反曲弓" value="RECURVE" />
+          <el-option label="复合弓" value="COMPOUND" />
+          <el-option label="传统弓" value="TRADITIONAL" />
+        </el-select>
         <el-radio-group v-model="startForm.arrowCount">
           <el-radio-button v-for="size in keypad.groupSizes || [6, 12]" :key="size" :value="size">
             {{ size }} 支
           </el-radio-button>
         </el-radio-group>
         <el-button type="primary" @click="startRound">开打</el-button>
+      </div>
+      <div class="muted cert-hint">
+        18 米及以上射距开打前，会员必须持有覆盖该弓种 / 射距的当前有效认证（高射距认证覆盖低射距）；未认证会被服务端拦下。
       </div>
     </div>
 
@@ -150,6 +158,9 @@
         <el-table-column label="箭道" width="110">
           <template #default="{ row }">{{ row.laneNo }} · {{ row.distance }}m</template>
         </el-table-column>
+        <el-table-column label="弓种" width="90">
+          <template #default="{ row }">{{ row.bowTypeName }}</template>
+        </el-table-column>
         <el-table-column prop="startTime" label="开始时间" width="150" :formatter="(r) => shortTime(r.startTime)" />
         <el-table-column label="箭支" width="90">
           <template #default="{ row }">{{ row.shotCount }} / {{ row.arrowCount }}</template>
@@ -188,7 +199,7 @@ const keypad = ref({ rings: [], groupSizes: [6, 12] })
 const current = ref(null)
 const details = reactive({})
 
-const startForm = reactive({ memberId: null, laneId: null, arrowCount: 6 })
+const startForm = reactive({ memberId: null, laneId: null, bowType: 'RECURVE', arrowCount: 6 })
 
 const canShoot = computed(() => !!current.value && current.value.round.status === 'ONGOING')
 const canUndo = computed(() => canShoot.value && current.value.arrows.length > 0)
@@ -252,9 +263,14 @@ async function startRound() {
     ElMessage.warning('请选择会员与箭道')
     return
   }
+  if (!startForm.bowType) {
+    ElMessage.warning('请选择弓种')
+    return
+  }
   const detail = await roundApi.start({
     memberId: startForm.memberId,
     laneId: startForm.laneId,
+    bowType: startForm.bowType,
     arrowCount: startForm.arrowCount
   })
   current.value = detail
@@ -305,6 +321,11 @@ onMounted(async () => {
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.cert-hint {
+  margin-top: 8px;
+  line-height: 1.6;
 }
 
 .desk {

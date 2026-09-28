@@ -9,6 +9,7 @@ export const navItems = [
   { key: 'score', path: '/score', icon: '🏹', label: '计分', hint: '环数键盘，一支一支记', badge: 'roundOngoing', unit: '进行中' },
   { key: 'tournament', path: '/tournament', icon: '🏆', label: '淘汰赛', hint: '团体淘汰赛计分台：赛事总览 · 对阵树 · 单场记分', badge: 'tournamentOngoing', unit: '进行中' },
   { key: 'safety', path: '/safety', icon: '🛑', label: '联锁', hint: '安全停射联锁台：停射事件 · 双人复核 · 复射放行', badge: 'safetyActive', unit: '起' },
+  { key: 'cert', path: '/cert', icon: '🪪', label: '认证', hint: '弓种能力认证：规则版本 · 证据窗口 · 教练复核 · 有效期与适用范围', badge: 'certPending', unit: '待复核' },
   { key: 'courses', path: '/courses', icon: '📚', label: '课程', hint: '卡片列表，满员禁用报名', badge: 'courseTotal', unit: '门' },
   { key: 'equipment', path: '/equipment', icon: '🧰', label: '器材', hint: '表格 + 租借归还', badge: 'equipRented', unit: '租出' }
 ]
@@ -21,6 +22,7 @@ const routes = [
   { path: '/score', name: 'score', component: () => import('../views/ScoreView.vue') },
   { path: '/tournament', name: 'tournament', component: () => import('../views/TournamentView.vue') },
   { path: '/safety', name: 'safety', component: () => import('../views/SafetyView.vue') },
+  { path: '/cert', name: 'cert', component: () => import('../views/CertView.vue') },
   { path: '/courses', name: 'courses', component: () => import('../views/CourseView.vue') },
   { path: '/equipment', name: 'equipment', component: () => import('../views/EquipmentView.vue') },
   { path: '/members', name: 'members', component: () => import('../views/MemberView.vue') },

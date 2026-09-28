@@ -77,9 +77,28 @@
       </div>
       <el-form label-width="84px">
         <el-form-item label="会员">
-          <el-select v-model="openForm.memberId" placeholder="请选择会员" style="width: 100%">
+          <el-select v-model="openForm.memberId" placeholder="请选择会员" style="width: 100%" @change="checkCert">
             <el-option v-for="m in members" :key="m.id" :label="`${m.name}（${m.cardNo}）`" :value="m.id" />
           </el-select>
+        </el-form-item>
+        <el-form-item label="拟用弓种">
+          <el-select v-model="openForm.bowType" style="width: 100%" @change="checkCert">
+            <el-option label="反曲弓" value="RECURVE" />
+            <el-option label="复合弓" value="COMPOUND" />
+            <el-option label="传统弓" value="TRADITIONAL" />
+          </el-select>
+        </el-form-item>
+        <el-form-item v-if="pick.distance >= 18" label="认证识别">
+          <el-tag v-if="certCover.covered" size="small" type="success" effect="dark">
+            已满足：{{ certCover.cert.bowTypeName }} {{ certCover.cert.distance }}米认证覆盖本道
+            （有效期至 {{ certCover.cert.validUntil }}）
+          </el-tag>
+          <el-tag v-else size="small" type="danger" effect="dark">
+            未满足：需 {{ bowName(openForm.bowType) }} {{ pick.distance }} 米有效认证
+          </el-tag>
+          <div class="muted" style="line-height: 1.6">
+            开台本身不拦认证，但该道 {{ pick.distance }} 米开打计分时服务端会强制校验，未持证无法开打。
+          </div>
         </el-form-item>
         <el-form-item label="时长">
           <el-input-number v-model="openForm.hours" :min="1" :max="options.maxOpenHours || 8" />
@@ -121,7 +140,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { laneApi, memberApi, money } from '../api'
+import { laneApi, memberApi, certApi, money } from '../api'
 
 const lanes = ref([])
 const members = ref([])
@@ -132,8 +151,21 @@ const pickId = ref(null)
 
 const openVisible = ref(false)
 const createVisible = ref(false)
-const openForm = reactive({ memberId: null, hours: 2 })
+const openForm = reactive({ memberId: null, bowType: 'RECURVE', hours: 2 })
 const createForm = reactive({ laneNo: '', distance: 18, targetType: '三联靶', hourlyPrice: 80 })
+
+const certCover = ref({ covered: false, cert: null })
+
+const BOW_NAMES = { RECURVE: '反曲弓', COMPOUND: '复合弓', TRADITIONAL: '传统弓' }
+function bowName(code) {
+  return BOW_NAMES[code] || code
+}
+
+async function checkCert() {
+  certCover.value = { covered: false, cert: null }
+  if (!pick.value || !openForm.memberId || !openForm.bowType || pick.value.distance < 18) return
+  certCover.value = await certApi.covers(openForm.memberId, openForm.bowType, pick.value.distance)
+}
 
 const pick = computed(() => lanes.value.find((item) => item.id === pickId.value) || null)
 const pickMember = computed(() => members.value.find((m) => m.id === openForm.memberId) || null)
@@ -173,8 +205,11 @@ function pickLane(lane) {
   }
   if (lane.status === 'OPEN') {
     openForm.memberId = members.value.length ? members.value[0].id : null
+    openForm.bowType = 'RECURVE'
     openForm.hours = 2
+    certCover.value = { covered: false, cert: null }
     openVisible.value = true
+    checkCert()
     return
   }
   if (lane.status === 'OCCUPIED') {

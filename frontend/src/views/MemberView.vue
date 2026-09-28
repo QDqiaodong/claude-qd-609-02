@@ -38,13 +38,69 @@
             <span v-else class="muted">暂无成绩</span>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="110" fixed="right">
+        <el-table-column label="操作" width="190" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" @click="openRecharge(row)">充值</el-button>
+            <el-button link type="primary" @click="openCerts(row)">认证</el-button>
           </template>
         </el-table-column>
       </el-table>
     </div>
+
+    <!-- 会员认证抽屉：当前有效认证 + 历史记录 -->
+    <el-drawer v-model="certVisible" :title="`弓种能力认证 · ${certMember ? certMember.name : ''}`" size="62%">
+      <template v-if="certMember">
+        <div class="rule-tip">
+          仅「已通过且在有效期内」的认证可用；适用范围按高射距覆盖低射距。过期、撤回、驳回或重新评定被取代的认证都不再有效。
+        </div>
+
+        <div class="panel-title">当前有效认证（{{ effectiveCerts.length }}）</div>
+        <div v-if="effectiveCerts.length" class="cert-cards">
+          <div v-for="c in effectiveCerts" :key="c.id" class="cert-card is-valid">
+            <div class="cert-head">
+              <b>{{ c.bowTypeName }}</b>
+              <el-tag size="small" type="success" effect="dark">有效</el-tag>
+            </div>
+            <div class="cert-scope">适用 {{ c.distance }} 米及以内射距</div>
+            <div class="muted mono">{{ c.certNo }}</div>
+            <div class="muted">有效期 {{ c.validFrom }} ~ {{ c.validUntil }}</div>
+            <div class="muted">复核：{{ c.reviewedBy }}</div>
+          </div>
+        </div>
+        <el-empty v-else description="暂无有效认证" :image-size="70" />
+
+        <div class="panel-title" style="margin-top: 16px">认证历史（{{ certHistory.length }}）</div>
+        <el-table :data="certHistory" size="small" border>
+          <el-table-column prop="certNo" label="编号" width="130" />
+          <el-table-column label="弓种射距" width="130">
+            <template #default="{ row }">{{ row.bowTypeName }} · {{ row.distance }}m</template>
+          </el-table-column>
+          <el-table-column label="规则" width="100">
+            <template #default="{ row }">{{ row.ruleCode }} v{{ row.versionNo }}</template>
+          </el-table-column>
+          <el-table-column label="证据" width="140">
+            <template #default="{ row }">{{ row.evidenceRounds }}回合 / {{ row.evidenceArrows }}箭 / {{ row.evidenceAverage }}环</template>
+          </el-table-column>
+          <el-table-column label="状态" width="92">
+            <template #default="{ row }">
+              <el-tag size="small" :type="certStatusType(row.status)" effect="dark">{{ row.statusName }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="有效期" min-width="180">
+            <template #default="{ row }">
+              <span v-if="row.validFrom">{{ row.validFrom }} ~ {{ row.validUntil }}</span>
+              <span v-else class="muted">—</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="发起 / 复核" min-width="150">
+            <template #default="{ row }">
+              <div class="muted">{{ row.createdBy }} 发起</div>
+              <div v-if="row.reviewedBy" class="muted">{{ row.reviewedBy }} 复核</div>
+            </template>
+          </el-table-column>
+        </el-table>
+      </template>
+    </el-drawer>
 
     <el-dialog v-model="createVisible" title="会员开卡" width="420px">
       <el-form label-width="80px">
@@ -84,7 +140,7 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { memberApi, money } from '../api'
+import { memberApi, certApi, money } from '../api'
 
 const members = ref([])
 const createVisible = ref(false)
@@ -92,6 +148,35 @@ const rechargeVisible = ref(false)
 const pick = ref(null)
 const rechargeAmount = ref(200)
 const createForm = reactive({ cardNo: '', name: '', phone: '', level: 'NORMAL', balance: 200 })
+
+// 会员认证抽屉
+const certVisible = ref(false)
+const certMember = ref(null)
+const effectiveCerts = ref([])
+const certHistory = ref([])
+
+function certStatusType(status) {
+  return {
+    PENDING_REVIEW: 'warning',
+    APPROVED: 'success',
+    REJECTED: 'danger',
+    NEED_MORE: 'warning',
+    EXPIRED: 'info',
+    REVOKED: 'danger',
+    SUPERSEDED: 'info'
+  }[status] || 'info'
+}
+
+async function openCerts(row) {
+  certMember.value = row
+  certVisible.value = true
+  const [effective, history] = await Promise.all([
+    certApi.effective(row.id),
+    certApi.list({ memberId: row.id })
+  ])
+  effectiveCerts.value = effective
+  certHistory.value = history
+}
 
 function levelType(level) {
   if (level === 'GOLD') return 'warning'
@@ -138,5 +223,41 @@ onMounted(loadMembers)
   margin-left: 6px;
   font-size: 12px;
   color: var(--el-color-primary);
+}
+
+.cert-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.cert-card {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cert-card.is-valid {
+  border-top: 3px solid #2eb872;
+  background: #f6fdf9;
+}
+
+.cert-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cert-head b {
+  font-size: 15px;
+}
+
+.cert-scope {
+  font-size: 13px;
+  font-weight: 600;
+  color: #04463c;
 }
 </style>

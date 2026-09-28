@@ -28,20 +28,29 @@ import com.archery.range.repository.RoundRepository;
  * 用 {@code @OneToMany + @JoinTable + @OrderColumn(name = "shot_index")} 映射成有序集合，
  * 于是「第几支箭」= 列表下标。记一支箭就是往列表尾部 append 后 save，
  * 顺序由 Hibernate 维护的 shot_index 保证，不会乱。
+ *
+ * 弓种能力认证：18 米及以上射距开打前，会员必须持有覆盖该弓种 / 射距的有效认证
+ * （由 CertService 按当前认证识别，过期 / 撤回 / 待复核都会被拦下）。
  */
 @Service
 public class RoundService {
 
     private static final DateTimeFormatter NO_STAMP = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
+    /** 该射距及以上开打需要持弓种认证（10 米为体验距离，不设门槛） */
+    private static final int CERT_REQUIRED_DISTANCE = 18;
+
     private final RoundRepository roundRepository;
     private final MemberRepository memberRepository;
     private final LaneRepository laneRepository;
+    private final CertService certService;
 
-    public RoundService(RoundRepository roundRepository, MemberRepository memberRepository, LaneRepository laneRepository) {
+    public RoundService(RoundRepository roundRepository, MemberRepository memberRepository,
+            LaneRepository laneRepository, CertService certService) {
         this.roundRepository = roundRepository;
         this.memberRepository = memberRepository;
         this.laneRepository = laneRepository;
+        this.certService = certService;
     }
 
     @Transactional(readOnly = true)
@@ -80,6 +89,17 @@ public class RoundService {
         if (!RangeDict.isValidGroupSize(req.arrowCount())) {
             throw new BizException("一组只能是 6 支或 12 支箭");
         }
+        String bowType = req.bowType() == null ? "" : req.bowType().trim().toUpperCase();
+        if (!RangeDict.isValidBowType(bowType)) {
+            throw new BizException("弓种只能是：反曲弓 / 复合弓 / 传统弓");
+        }
+        // 弓种能力认证：18 米及以上射距必须持有覆盖该弓种 / 射距的当前有效认证
+        if (lane.getDistance() != null && lane.getDistance() >= CERT_REQUIRED_DISTANCE
+                && !certService.covers(member.getId(), bowType, lane.getDistance())) {
+            throw new BizException("会员 [" + member.getName() + "] 没有覆盖「"
+                    + RangeDict.bowTypeName(bowType) + " · " + lane.getDistance()
+                    + " 米」的有效弓种认证（高射距认证可覆盖低射距），不能在此箭道开打该弓种");
+        }
 
         Round round = new Round();
         round.setRoundNo(nextRoundNo());
@@ -87,6 +107,7 @@ public class RoundService {
         round.setLane(lane);
         round.setStartTime(LocalDateTime.now());
         round.setArrowCount(req.arrowCount());
+        round.setBowType(bowType);
         round.setTotalScore(0);
         round.setAverageScore(BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP));
         round.setPersonalBest(false);
@@ -218,6 +239,8 @@ public class RoundService {
                 round.getLane() == null ? null : round.getLane().getId(),
                 round.getLane() == null ? "" : round.getLane().getLaneNo(),
                 round.getLane() == null ? null : round.getLane().getDistance(),
+                round.getBowType(),
+                RangeDict.bowTypeName(round.getBowType()),
                 round.getStartTime(),
                 round.getArrowCount(),
                 round.getArrows().size(),

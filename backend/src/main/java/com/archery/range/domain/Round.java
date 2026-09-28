@@ -53,6 +53,10 @@ public class Round {
     @Column(name = "arrow_count", nullable = false)
     private Integer arrowCount;
 
+    /** 弓种：RECURVE 反曲弓 / COMPOUND 复合弓 / TRADITIONAL 传统弓 */
+    @Column(name = "bow_type", nullable = false, length = 16)
+    private String bowType;
+
     @Column(name = "total_score", nullable = false)
     private Integer totalScore;
 
@@ -120,6 +124,14 @@ public class Round {
 
     public void setArrowCount(Integer arrowCount) {
         this.arrowCount = arrowCount;
+    }
+
+    public String getBowType() {
+        return bowType;
+    }
+
+    public void setBowType(String bowType) {
+        this.bowType = bowType;
     }
 
     public Integer getTotalScore() {

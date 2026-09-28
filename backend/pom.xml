@@ -43,6 +43,27 @@
             <scope>runtime</scope>
         </dependency>
     </dependencies>
+
+    <!-- 本地集成测试用：内嵌 H2（MySQL 方言）+ spring-boot-starter-test。
+         默认镜像构建走 -DskipTests 且不启用该 profile，不会向预热的离线依赖仓要新包。 -->
+    <profiles>
+        <profile>
+            <id>local-it</id>
+            <dependencies>
+                <dependency>
+                    <groupId>com.h2database</groupId>
+                    <artifactId>h2</artifactId>
+                    <version>2.2.224</version>
+                    <scope>test</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-test</artifactId>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
     <build>
         <plugins>
             <plugin>

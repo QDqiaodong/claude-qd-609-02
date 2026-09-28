@@ -51,6 +51,24 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * 并发冲突：409 + 明确冲突反馈（如同一份认证申请已被另一位教练先决定）
+     */
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ApiResponse<Void>> handleConflict(ConflictException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.fail(e.getMessage()));
+    }
+
+    /**
+     * 乐观锁版本冲突：同样以 409 返回人话提示
+     */
+    @ExceptionHandler(org.springframework.orm.ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<ApiResponse<Void>> handleOptimisticLock(
+            org.springframework.orm.ObjectOptimisticLockingFailureException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiResponse.fail("该申请刚被另一位教练处理过，页面状态已过期，请刷新后查看最终结论"));
+    }
+
+    /**
      * 唯一约束冲突：400（避免在页面上抛出非人话的外键报错）
      */
     @ExceptionHandler(DataIntegrityViolationException.class)

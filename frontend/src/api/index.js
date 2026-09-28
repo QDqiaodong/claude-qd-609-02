@@ -104,6 +104,24 @@ export const tournamentApi = {
   confirmWinner: (matchId, data) => http.post(`/tournament/matches/${matchId}/confirm-winner`, data)
 }
 
+/** 模块八：弓种能力认证（规则带版本 · 证据窗口 · 复核状态机 · 并发单结论） */
+export const certApi = {
+  options: () => http.get('/cert/options'),
+  rules: (status) => http.get('/cert/rules', { params: status ? { status } : {} }),
+  publishRule: (data) => http.post('/cert/rules', data),
+  windowRounds: (memberId, from, to) => http.get('/cert/window-rounds', { params: { memberId, from, to } }),
+  preview: (data) => http.post('/cert/preview', data),
+  list: (params) => http.get('/cert/applications', { params }),
+  detail: (id) => http.get(`/cert/applications/${id}`),
+  apply: (data) => http.post('/cert/applications', data),
+  resubmit: (id, data) => http.post(`/cert/applications/${id}/resubmit`, data),
+  decide: (id, data) => http.post(`/cert/applications/${id}/decide`, data),
+  revoke: (id, operator) => http.post(`/cert/applications/${id}/revoke`, { operator }),
+  effective: (memberId) => http.get(`/cert/members/${memberId}/effective`),
+  covers: (memberId, bowType, distance) =>
+    http.get(`/cert/members/${memberId}/covers`, { params: { bowType, distance } })
+}
+
 export const statsApi = {
   board: () => http.get('/stats/board')
 }
