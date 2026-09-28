@@ -16,6 +16,7 @@
     <div class="rule-tip">
       只有「在库」器材可租借，租借按 1 小时租金从会员余额扣；「租出」可归还；「维修」中的器材不能租借，修好后回到在库。
       「安全锁定」由停射事件触发，锁定期间禁止租借、归还与切换维修状态，放行后恢复锁定前状态。
+      <b>租借反曲弓 / 复合弓 / 传统弓器材，会员必须持有该弓种的当前有效认证；护具与箭支不受限制。</b>
     </div>
 
     <div class="panel">
@@ -57,9 +58,15 @@
       <div v-if="pick" class="dlg-tip">
         {{ pick.typeName }} · {{ pick.brand }} · ¥{{ money(pick.rentPrice) }}/小时，按 1 小时从余额扣费。
       </div>
+      <div v-if="pick && isBowType(pick.type)" class="cert-line">
+        <el-tag size="small" :type="bowCertOk ? 'success' : 'danger'" effect="dark">
+          {{ bowCertOk ? `持有有效「${pick.typeName}」认证` : `无有效「${pick.typeName}」认证` }}
+        </el-tag>
+        <span class="muted" style="margin-left: 8px">{{ bowCertText }}</span>
+      </div>
       <el-form label-width="70px">
         <el-form-item label="会员">
-          <el-select v-model="rentMemberId" placeholder="请选择会员" style="width: 100%">
+          <el-select v-model="rentMemberId" placeholder="请选择会员" style="width: 100%" @change="loadMemberCerts">
             <el-option
               v-for="m in members"
               :key="m.id"
@@ -98,13 +105,16 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { equipApi, memberApi, money, shortTime } from '../api'
+import { certApi, equipApi, memberApi, money, shortTime } from '../api'
+
+const BOW_TYPES = ['RECURVE', 'COMPOUND', 'TRADITIONAL']
 
 const list = ref([])
 const members = ref([])
 const options = ref({})
+const memberCerts = ref([])
 const filterType = ref(null)
 const filterStatus = ref(null)
 
@@ -113,6 +123,23 @@ const createVisible = ref(false)
 const pick = ref(null)
 const rentMemberId = ref(null)
 const createForm = reactive({ equipCode: '', type: 'RECURVE', brand: '', rentPrice: 40 })
+
+function isBowType(type) {
+  return BOW_TYPES.includes(type)
+}
+
+const bowCertOk = computed(() => {
+  if (!pick.value) return false
+  return memberCerts.value.some((c) => c.bowType === pick.value.type)
+})
+
+const bowCertText = computed(() => {
+  if (!pick.value) return ''
+  const hit = memberCerts.value.find((c) => c.bowType === pick.value.type)
+  return hit
+    ? `${hit.distance} 米认证，有效期至 ${String(hit.validUntil).slice(0, 10)}`
+    : '租借将被拒绝，请先在「认证」页完成该弓种认证'
+})
 
 function statusType(status) {
   if (status === 'INSTOCK') return 'success'
@@ -132,9 +159,19 @@ async function loadMembers() {
   members.value = await memberApi.options()
 }
 
-function openRent(row) {
+async function loadMemberCerts() {
+  memberCerts.value = []
+  if (rentMemberId.value) {
+    const data = await certApi.memberCerts(rentMemberId.value)
+    memberCerts.value = data.current || []
+  }
+}
+
+async function openRent(row) {
   pick.value = row
   rentMemberId.value = members.value.length ? members.value[0].id : null
+  memberCerts.value = []
+  await loadMemberCerts()
   rentVisible.value = true
 }
 
@@ -195,5 +232,14 @@ onMounted(async () => {
   border-radius: 6px;
   background: var(--el-color-primary-light-9);
   color: #04463c;
+}
+
+.cert-line {
+  margin-bottom: 12px;
+  padding: 8px 10px;
+  font-size: 12px;
+  border-radius: 6px;
+  background: #f6f8f8;
+  border: 1px solid var(--line);
 }
 </style>

@@ -12,6 +12,7 @@ import com.archery.range.domain.Lane;
 import com.archery.range.domain.RangeDict;
 import com.archery.range.dto.RoundDtos;
 import com.archery.range.repository.ArrowScoreRepository;
+import com.archery.range.repository.CertApplicationRepository;
 import com.archery.range.repository.CourseRepository;
 import com.archery.range.repository.EquipmentRepository;
 import com.archery.range.repository.LaneRepository;
@@ -34,6 +35,7 @@ public class StatsService {
     private final EquipmentRepository equipmentRepository;
     private final SafetyEventRepository safetyEventRepository;
     private final TournamentRepository tournamentRepository;
+    private final CertApplicationRepository certApplicationRepository;
     private final RoundService roundService;
 
     public StatsService(LaneRepository laneRepository,
@@ -44,6 +46,7 @@ public class StatsService {
             EquipmentRepository equipmentRepository,
             SafetyEventRepository safetyEventRepository,
             TournamentRepository tournamentRepository,
+            CertApplicationRepository certApplicationRepository,
             RoundService roundService) {
         this.laneRepository = laneRepository;
         this.memberRepository = memberRepository;
@@ -53,6 +56,7 @@ public class StatsService {
         this.equipmentRepository = equipmentRepository;
         this.safetyEventRepository = safetyEventRepository;
         this.tournamentRepository = tournamentRepository;
+        this.certApplicationRepository = certApplicationRepository;
         this.roundService = roundService;
     }
 
@@ -73,6 +77,7 @@ public class StatsService {
         counters.put("equipTotal", equipmentRepository.count());
         counters.put("equipRented", equipmentRepository.findByStatusOrderByEquipCodeAsc("RENTED").size());
         counters.put("safetyActive", safetyEventRepository.countByStatusNot("RELEASED"));
+        counters.put("certPending", certApplicationRepository.countByStatus("PENDING"));
         counters.put("tournamentTotal", tournamentRepository.count());
         counters.put("tournamentOngoing", tournamentRepository.countByStatus("ONGOING"));
 
@@ -102,6 +107,8 @@ public class StatsService {
                 round.getLane() == null ? null : round.getLane().getId(),
                 round.getLane() == null ? "" : round.getLane().getLaneNo(),
                 round.getLane() == null ? null : round.getLane().getDistance(),
+                round.getBowType(),
+                RangeDict.bowTypeName(round.getBowType()),
                 round.getStartTime(),
                 round.getArrowCount(),
                 round.getArrows().size(),

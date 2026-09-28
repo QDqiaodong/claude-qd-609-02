@@ -80,11 +80,18 @@ public class RoundService {
         if (!RangeDict.isValidGroupSize(req.arrowCount())) {
             throw new BizException("一组只能是 6 支或 12 支箭");
         }
+        String bowType = req.bowType() == null || req.bowType().isBlank()
+                ? "RECURVE"
+                : req.bowType().trim().toUpperCase();
+        if (!RangeDict.isValidBowType(bowType)) {
+            throw new BizException("弓种只能是 反曲弓 / 复合弓 / 传统弓");
+        }
 
         Round round = new Round();
         round.setRoundNo(nextRoundNo());
         round.setMember(member);
         round.setLane(lane);
+        round.setBowType(bowType);
         round.setStartTime(LocalDateTime.now());
         round.setArrowCount(req.arrowCount());
         round.setTotalScore(0);
@@ -218,6 +225,8 @@ public class RoundService {
                 round.getLane() == null ? null : round.getLane().getId(),
                 round.getLane() == null ? "" : round.getLane().getLaneNo(),
                 round.getLane() == null ? null : round.getLane().getDistance(),
+                round.getBowType(),
+                RangeDict.bowTypeName(round.getBowType()),
                 round.getStartTime(),
                 round.getArrowCount(),
                 round.getArrows().size(),

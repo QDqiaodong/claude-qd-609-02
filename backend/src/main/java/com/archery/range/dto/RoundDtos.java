@@ -21,6 +21,7 @@ public final class RoundDtos {
     public record RoundStartReq(
             @NotNull(message = "请选择会员") Long memberId,
             @NotNull(message = "请选择箭道") Long laneId,
+            String bowType,
             @NotNull(message = "请选择箭支数") Integer arrowCount) {
     }
 
@@ -40,6 +41,8 @@ public final class RoundDtos {
             Long laneId,
             String laneNo,
             Integer distance,
+            String bowType,
+            String bowTypeName,
             LocalDateTime startTime,
             Integer arrowCount,
             Integer shotCount,

@@ -3,6 +3,7 @@ package com.archery.range.service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import com.archery.range.common.BizException;
 import com.archery.range.domain.Member;
 import com.archery.range.domain.RangeDict;
 import com.archery.range.dto.MemberDtos;
+import com.archery.range.repository.CertApplicationRepository;
 import com.archery.range.repository.MemberRepository;
 import com.archery.range.repository.RoundRepository;
 
@@ -20,10 +22,13 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final RoundRepository roundRepository;
+    private final CertApplicationRepository certApplicationRepository;
 
-    public MemberService(MemberRepository memberRepository, RoundRepository roundRepository) {
+    public MemberService(MemberRepository memberRepository, RoundRepository roundRepository,
+            CertApplicationRepository certApplicationRepository) {
         this.memberRepository = memberRepository;
         this.roundRepository = roundRepository;
+        this.certApplicationRepository = certApplicationRepository;
     }
 
     @Transactional(readOnly = true)
@@ -104,6 +109,11 @@ public class MemberService {
                 .mapToInt(r -> r.getTotalScore() == null ? 0 : r.getTotalScore())
                 .max()
                 .orElse(0);
+        // 当前有效认证：已通过且未过期（撤回 / 被取代 / 过期均不计）
+        int validCertCount = certApplicationRepository
+                .findByMemberIdAndStatusAndValidUntilGreaterThanEqualOrderByValidUntilDesc(
+                        member.getId(), "APPROVED", LocalDateTime.now())
+                .size();
         return new MemberDtos.MemberView(
                 member.getId(),
                 member.getCardNo(),
@@ -116,6 +126,7 @@ public class MemberService {
                 member.getTotalSpend(),
                 RangeDict.memberDiscount(member.getLevel()),
                 roundRepository.countByMemberId(member.getId()),
-                best);
+                best,
+                validCertCount);
     }
 }

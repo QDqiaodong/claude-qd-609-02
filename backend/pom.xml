@@ -51,4 +51,31 @@
             </plugin>
         </plugins>
     </build>
+
+    <!--
+      集成测试依赖只放进本地默认激活的 profile：
+      本地 mvn test 可直接运行（H2 MySQL 模式加载真实 schema.sql）；
+      Docker 镜像构建用 -P '!integration-tests' 停用，镜像构建不下载这些依赖、也不编译测试代码。
+    -->
+    <profiles>
+        <profile>
+            <id>integration-tests</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>com.h2database</groupId>
+                    <artifactId>h2</artifactId>
+                    <version>2.2.224</version>
+                    <scope>test</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-test</artifactId>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 </project>

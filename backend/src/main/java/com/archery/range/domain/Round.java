@@ -46,6 +46,10 @@ public class Round {
     @JoinColumn(name = "lane_id", nullable = false)
     private Lane lane;
 
+    /** 本回合使用弓种：RECURVE 反曲弓 / COMPOUND 复合弓 / TRADITIONAL 传统弓（认证证据字段） */
+    @Column(name = "bow_type", nullable = false, length = 16)
+    private String bowType;
+
     @Column(name = "start_time", nullable = false)
     private LocalDateTime startTime;
 
@@ -104,6 +108,14 @@ public class Round {
 
     public void setLane(Lane lane) {
         this.lane = lane;
+    }
+
+    public String getBowType() {
+        return bowType;
+    }
+
+    public void setBowType(String bowType) {
+        this.bowType = bowType;
     }
 
     public LocalDateTime getStartTime() {

@@ -20,10 +20,13 @@ public class EquipmentService {
 
     private final EquipmentRepository equipmentRepository;
     private final MemberService memberService;
+    private final CertService certService;
 
-    public EquipmentService(EquipmentRepository equipmentRepository, MemberService memberService) {
+    public EquipmentService(EquipmentRepository equipmentRepository, MemberService memberService,
+            CertService certService) {
         this.equipmentRepository = equipmentRepository;
         this.memberService = memberService;
+        this.certService = certService;
     }
 
     @Transactional(readOnly = true)
@@ -68,6 +71,8 @@ public class EquipmentService {
                     + RangeDict.equipStatusName(equipment.getStatus()) + "」，不能租借");
         }
         Member member = memberService.require(req.memberId());
+        // 租借弓类器材必须持有该弓种的当前有效认证（护具 / 箭支不限制）
+        certService.requireBowCert(member, equipment.getType());
         memberService.charge(member, equipment.getRentPrice(), "租借 " + equipment.getEquipCode());
 
         equipment.setStatus("RENTED");

@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS rounds (
   round_no      VARCHAR(24)  NOT NULL COMMENT '回合号',
   member_id     BIGINT       NOT NULL,
   lane_id       BIGINT       NOT NULL,
+  bow_type      VARCHAR(16)  NOT NULL DEFAULT 'RECURVE' COMMENT '本回合弓种：RECURVE 反曲弓 / COMPOUND 复合弓 / TRADITIONAL 传统弓',
   start_time    DATETIME     NOT NULL COMMENT '开始时间',
   arrow_count   INT          NOT NULL COMMENT '本组箭支数：6 或 12',
   total_score   INT          NOT NULL COMMENT '总分',
@@ -47,6 +48,7 @@ CREATE TABLE IF NOT EXISTS rounds (
   UNIQUE KEY uk_round_no (round_no),
   KEY idx_round_member (member_id),
   KEY idx_round_lane (lane_id),
+  KEY idx_round_bow (bow_type),
   CONSTRAINT fk_round_member FOREIGN KEY (member_id) REFERENCES members (id),
   CONSTRAINT fk_round_lane   FOREIGN KEY (lane_id)   REFERENCES lanes (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -225,19 +227,21 @@ INSERT INTO members (`id`, `card_no`, `name`, `phone`, `level`, `balance`, `regi
 INSERT INTO members (`id`, `card_no`, `name`, `phone`, `level`, `balance`, `register_date`, `total_spend`) VALUES (11, 'AR-2025-0011', '高翔', '13800010011', 'SILVER', 1560.00, '2025-03-08', 5200.00);
 INSERT INTO members (`id`, `card_no`, `name`, `phone`, `level`, `balance`, `register_date`, `total_spend`) VALUES (12, 'AR-2025-0012', '唐宁', '13800010012', 'NORMAL', 100.00, '2025-05-27', 180.00);
 
--- rounds：12 行
-INSERT INTO rounds (`id`, `round_no`, `member_id`, `lane_id`, `start_time`, `arrow_count`, `total_score`, `average_score`, `personal_best`, `status`) VALUES (1, 'R20260915001', 1, 1, '2026-09-15 19:10:00', 6, 58, 9.67, 1, 'SUBMITTED');
-INSERT INTO rounds (`id`, `round_no`, `member_id`, `lane_id`, `start_time`, `arrow_count`, `total_score`, `average_score`, `personal_best`, `status`) VALUES (2, 'R20260916001', 2, 3, '2026-09-16 18:40:00', 6, 43, 7.17, 1, 'SUBMITTED');
-INSERT INTO rounds (`id`, `round_no`, `member_id`, `lane_id`, `start_time`, `arrow_count`, `total_score`, `average_score`, `personal_best`, `status`) VALUES (3, 'R20260916002', 4, 6, '2026-09-16 20:05:00', 12, 112, 9.33, 1, 'SUBMITTED');
-INSERT INTO rounds (`id`, `round_no`, `member_id`, `lane_id`, `start_time`, `arrow_count`, `total_score`, `average_score`, `personal_best`, `status`) VALUES (4, 'R20260917001', 6, 4, '2026-09-17 19:30:00', 6, 45, 7.50, 1, 'SUBMITTED');
-INSERT INTO rounds (`id`, `round_no`, `member_id`, `lane_id`, `start_time`, `arrow_count`, `total_score`, `average_score`, `personal_best`, `status`) VALUES (5, 'R20260918001', 8, 9, '2026-09-18 20:15:00', 12, 109, 9.08, 1, 'SUBMITTED');
-INSERT INTO rounds (`id`, `round_no`, `member_id`, `lane_id`, `start_time`, `arrow_count`, `total_score`, `average_score`, `personal_best`, `status`) VALUES (6, 'R20260919001', 1, 10, '2026-09-19 19:00:00', 6, 58, 9.67, 0, 'SUBMITTED');
-INSERT INTO rounds (`id`, `round_no`, `member_id`, `lane_id`, `start_time`, `arrow_count`, `total_score`, `average_score`, `personal_best`, `status`) VALUES (7, 'R20260920001', 9, 8, '2026-09-20 18:20:00', 6, 37, 6.17, 1, 'SUBMITTED');
-INSERT INTO rounds (`id`, `round_no`, `member_id`, `lane_id`, `start_time`, `arrow_count`, `total_score`, `average_score`, `personal_best`, `status`) VALUES (8, 'R20260920002', 11, 7, '2026-09-20 20:30:00', 12, 104, 8.67, 1, 'SUBMITTED');
-INSERT INTO rounds (`id`, `round_no`, `member_id`, `lane_id`, `start_time`, `arrow_count`, `total_score`, `average_score`, `personal_best`, `status`) VALUES (9, 'R20260921001', 4, 12, '2026-09-21 19:45:00', 6, 59, 9.83, 0, 'SUBMITTED');
-INSERT INTO rounds (`id`, `round_no`, `member_id`, `lane_id`, `start_time`, `arrow_count`, `total_score`, `average_score`, `personal_best`, `status`) VALUES (10, 'R20260922001', 3, 2, '2026-09-22 10:20:00', 6, 0, 0.00, 0, 'ONGOING');
-INSERT INTO rounds (`id`, `round_no`, `member_id`, `lane_id`, `start_time`, `arrow_count`, `total_score`, `average_score`, `personal_best`, `status`) VALUES (11, 'R20260922002', 7, 7, '2026-09-22 13:05:00', 12, 0, 0.00, 0, 'ONGOING');
-INSERT INTO rounds (`id`, `round_no`, `member_id`, `lane_id`, `start_time`, `arrow_count`, `total_score`, `average_score`, `personal_best`, `status`) VALUES (12, 'R20260922003', 5, 8, '2026-09-22 15:40:00', 6, 0, 0.00, 0, 'ONGOING');
+-- rounds：13 行（bow_type 记录本回合使用弓种，是弓种认证的证据字段之一）
+INSERT INTO rounds (`id`, `round_no`, `member_id`, `lane_id`, `bow_type`, `start_time`, `arrow_count`, `total_score`, `average_score`, `personal_best`, `status`) VALUES (1, 'R20260915001', 1, 1, 'RECURVE', '2026-09-15 19:10:00', 6, 58, 9.67, 1, 'SUBMITTED');
+INSERT INTO rounds (`id`, `round_no`, `member_id`, `lane_id`, `bow_type`, `start_time`, `arrow_count`, `total_score`, `average_score`, `personal_best`, `status`) VALUES (2, 'R20260916001', 2, 3, 'TRADITIONAL', '2026-09-16 18:40:00', 6, 43, 7.17, 1, 'SUBMITTED');
+INSERT INTO rounds (`id`, `round_no`, `member_id`, `lane_id`, `bow_type`, `start_time`, `arrow_count`, `total_score`, `average_score`, `personal_best`, `status`) VALUES (3, 'R20260916002', 4, 6, 'COMPOUND', '2026-09-16 20:05:00', 12, 112, 9.33, 1, 'SUBMITTED');
+INSERT INTO rounds (`id`, `round_no`, `member_id`, `lane_id`, `bow_type`, `start_time`, `arrow_count`, `total_score`, `average_score`, `personal_best`, `status`) VALUES (4, 'R20260917001', 6, 4, 'RECURVE', '2026-09-17 19:30:00', 6, 45, 7.50, 1, 'SUBMITTED');
+INSERT INTO rounds (`id`, `round_no`, `member_id`, `lane_id`, `bow_type`, `start_time`, `arrow_count`, `total_score`, `average_score`, `personal_best`, `status`) VALUES (5, 'R20260918001', 8, 9, 'RECURVE', '2026-09-18 20:15:00', 12, 109, 9.08, 1, 'SUBMITTED');
+INSERT INTO rounds (`id`, `round_no`, `member_id`, `lane_id`, `bow_type`, `start_time`, `arrow_count`, `total_score`, `average_score`, `personal_best`, `status`) VALUES (6, 'R20260919001', 1, 10, 'RECURVE', '2026-09-19 19:00:00', 6, 58, 9.67, 0, 'SUBMITTED');
+INSERT INTO rounds (`id`, `round_no`, `member_id`, `lane_id`, `bow_type`, `start_time`, `arrow_count`, `total_score`, `average_score`, `personal_best`, `status`) VALUES (7, 'R20260920001', 9, 8, 'COMPOUND', '2026-09-20 18:20:00', 6, 37, 6.17, 1, 'SUBMITTED');
+INSERT INTO rounds (`id`, `round_no`, `member_id`, `lane_id`, `bow_type`, `start_time`, `arrow_count`, `total_score`, `average_score`, `personal_best`, `status`) VALUES (8, 'R20260920002', 11, 7, 'COMPOUND', '2026-09-20 20:30:00', 12, 104, 8.67, 1, 'SUBMITTED');
+INSERT INTO rounds (`id`, `round_no`, `member_id`, `lane_id`, `bow_type`, `start_time`, `arrow_count`, `total_score`, `average_score`, `personal_best`, `status`) VALUES (9, 'R20260921001', 4, 12, 'COMPOUND', '2026-09-21 19:45:00', 6, 59, 9.83, 0, 'SUBMITTED');
+INSERT INTO rounds (`id`, `round_no`, `member_id`, `lane_id`, `bow_type`, `start_time`, `arrow_count`, `total_score`, `average_score`, `personal_best`, `status`) VALUES (10, 'R20260922001', 3, 2, 'RECURVE', '2026-09-22 10:20:00', 6, 0, 0.00, 0, 'ONGOING');
+INSERT INTO rounds (`id`, `round_no`, `member_id`, `lane_id`, `bow_type`, `start_time`, `arrow_count`, `total_score`, `average_score`, `personal_best`, `status`) VALUES (11, 'R20260922002', 7, 7, 'COMPOUND', '2026-09-22 13:05:00', 12, 0, 0.00, 0, 'ONGOING');
+INSERT INTO rounds (`id`, `round_no`, `member_id`, `lane_id`, `bow_type`, `start_time`, `arrow_count`, `total_score`, `average_score`, `personal_best`, `status`) VALUES (12, 'R20260922003', 5, 8, 'RECURVE', '2026-09-22 15:40:00', 6, 0, 0.00, 0, 'ONGOING');
+-- 历史回合：会员 2 去年的传统弓 18 米训练，用于一笔已过期认证的证据
+INSERT INTO rounds (`id`, `round_no`, `member_id`, `lane_id`, `bow_type`, `start_time`, `arrow_count`, `total_score`, `average_score`, `personal_best`, `status`) VALUES (13, 'R20250910001', 2, 3, 'TRADITIONAL', '2025-09-10 19:00:00', 6, 40, 6.67, 0, 'SUBMITTED');
 
 -- arrow_score：72 行
 INSERT INTO arrow_score (`id`, `ring`, `ring_value`) VALUES (1, 'X', 10);
@@ -312,6 +316,13 @@ INSERT INTO arrow_score (`id`, `ring`, `ring_value`) VALUES (69, '10', 10);
 INSERT INTO arrow_score (`id`, `ring`, `ring_value`) VALUES (70, '9', 9);
 INSERT INTO arrow_score (`id`, `ring`, `ring_value`) VALUES (71, '10', 10);
 INSERT INTO arrow_score (`id`, `ring`, `ring_value`) VALUES (72, '10', 10);
+-- round 13（历史传统弓训练）6 支：7/7/6/8/6/6 = 40
+INSERT INTO arrow_score (`id`, `ring`, `ring_value`) VALUES (73, '7', 7);
+INSERT INTO arrow_score (`id`, `ring`, `ring_value`) VALUES (74, '7', 7);
+INSERT INTO arrow_score (`id`, `ring`, `ring_value`) VALUES (75, '6', 6);
+INSERT INTO arrow_score (`id`, `ring`, `ring_value`) VALUES (76, '8', 8);
+INSERT INTO arrow_score (`id`, `ring`, `ring_value`) VALUES (77, '6', 6);
+INSERT INTO arrow_score (`id`, `ring`, `ring_value`) VALUES (78, '6', 6);
 
 -- round_arrow：72 行
 INSERT INTO round_arrow (`round_id`, `arrow_id`, `shot_index`) VALUES (1, 1, 0);
@@ -386,6 +397,12 @@ INSERT INTO round_arrow (`round_id`, `arrow_id`, `shot_index`) VALUES (9, 69, 2)
 INSERT INTO round_arrow (`round_id`, `arrow_id`, `shot_index`) VALUES (9, 70, 3);
 INSERT INTO round_arrow (`round_id`, `arrow_id`, `shot_index`) VALUES (9, 71, 4);
 INSERT INTO round_arrow (`round_id`, `arrow_id`, `shot_index`) VALUES (9, 72, 5);
+INSERT INTO round_arrow (`round_id`, `arrow_id`, `shot_index`) VALUES (13, 73, 0);
+INSERT INTO round_arrow (`round_id`, `arrow_id`, `shot_index`) VALUES (13, 74, 1);
+INSERT INTO round_arrow (`round_id`, `arrow_id`, `shot_index`) VALUES (13, 75, 2);
+INSERT INTO round_arrow (`round_id`, `arrow_id`, `shot_index`) VALUES (13, 76, 3);
+INSERT INTO round_arrow (`round_id`, `arrow_id`, `shot_index`) VALUES (13, 77, 4);
+INSERT INTO round_arrow (`round_id`, `arrow_id`, `shot_index`) VALUES (13, 78, 5);
 
 -- courses：10 行
 INSERT INTO courses (`id`, `course_name`, `coach`, `level`, `class_time`, `capacity`, `enrolled`, `venue`) VALUES (1, '反曲弓入门体验', '张岩', 'BASIC', '2026-09-23 19:00:00', 8, 5, '一号教学区');
@@ -615,3 +632,150 @@ CREATE TABLE IF NOT EXISTS tournament_log (
   KEY idx_tlog_match (match_id),
   CONSTRAINT fk_tlog_tournament FOREIGN KEY (tournament_id) REFERENCES tournament (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ================= 模块八：弓种能力认证 =================
+-- 认证规则（带版本）：同一弓种+射距为一条规则谱系（rule_code，如 RECURVE-50），
+-- version 从 1 递增。规则调整 = 发布新版本，旧版本转 RETIRED：
+-- 既不能改写已发出的认证历史（历史认证持有评定当时的规则快照），新申请也只能选 ACTIVE 版本。
+CREATE TABLE IF NOT EXISTS cert_rule (
+  id               BIGINT        NOT NULL AUTO_INCREMENT,
+  rule_code        VARCHAR(24)   NOT NULL COMMENT '规则谱系：弓种-射距，如 RECURVE-50',
+  version          INT           NOT NULL COMMENT '版本号，从 1 递增',
+  bow_type         VARCHAR(16)   NOT NULL COMMENT '弓种：RECURVE 反曲弓 / COMPOUND 复合弓 / TRADITIONAL 传统弓',
+  distance         INT           NOT NULL COMMENT '射距（米）：10/18/30/50',
+  group_size       INT           NOT NULL COMMENT '每组箭数要求：6 或 12',
+  min_rounds       INT           NOT NULL COMMENT '证据窗口内最少完成回合数',
+  min_average      DECIMAL(4,2)  NOT NULL COMMENT '通过标准：证据窗口平均每支箭环值下限',
+  validity_months  INT           NOT NULL COMMENT '认证通过后的有效期（月）',
+  status           VARCHAR(16)   NOT NULL COMMENT 'ACTIVE 现行 / RETIRED 已停用',
+  note             VARCHAR(200)  NULL COMMENT '规则说明（如标准上调原因）',
+  created_by       VARCHAR(32)   NOT NULL COMMENT '发布教练',
+  created_at       DATETIME      NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_cert_rule_version (rule_code, version),
+  KEY idx_cert_rule_type (bow_type, distance)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 认证申请：教练选定会员、弓种与规则版本，划定有明确起止的证据窗口建立。
+-- 状态机：PENDING 待复核 → APPROVED 已通过 / REJECTED 已驳回 / NEED_MORE 待补充证据；
+-- NEED_MORE 可补充证据重新提交（回到 PENDING，eval_seq+1，旧评定保留）；
+-- APPROVED 可被 WITHDRAWN 撤回，或被同一适用范围的新认证 SUPERSEDED 取代；
+-- 过期不落库改状态：APPROVED 且 valid_until < 当前时间即视为已过期，任何入口都不得再当有效认证。
+CREATE TABLE IF NOT EXISTS cert_application (
+  id              BIGINT       NOT NULL AUTO_INCREMENT,
+  app_no          VARCHAR(24)  NOT NULL COMMENT '申请号',
+  member_id       BIGINT       NOT NULL,
+  bow_type        VARCHAR(16)  NOT NULL COMMENT '申请弓种',
+  distance        INT          NOT NULL COMMENT '申请射距（米）',
+  window_start    DATETIME     NOT NULL COMMENT '证据窗口起',
+  window_end      DATETIME     NOT NULL COMMENT '证据窗口止',
+  status          VARCHAR(16)  NOT NULL COMMENT 'PENDING / APPROVED / REJECTED / NEED_MORE / WITHDRAWN / SUPERSEDED',
+  eval_seq        INT          NOT NULL DEFAULT 1 COMMENT '当前评定序号：补充证据重新评定 +1',
+  reviewed_by     VARCHAR(32)  NULL COMMENT '复核教练',
+  reviewed_at     DATETIME     NULL,
+  review_note     VARCHAR(500) NULL COMMENT '复核意见；驳回 / 要求补充证据时必填',
+  valid_from      DATETIME     NULL COMMENT '认证生效时间（复核通过）',
+  valid_until     DATETIME     NULL COMMENT '认证有效期至',
+  withdrawn_by    VARCHAR(32)  NULL,
+  withdrawn_at    DATETIME     NULL,
+  withdraw_reason VARCHAR(500) NULL,
+  created_by      VARCHAR(32)  NOT NULL COMMENT '建立申请的教练',
+  created_at      DATETIME     NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_cert_app_no (app_no),
+  KEY idx_cert_app_member (member_id),
+  KEY idx_cert_app_scope (member_id, bow_type, distance),
+  CONSTRAINT fk_cert_app_member FOREIGN KEY (member_id) REFERENCES members (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 评定记录（每次建立申请 / 补充证据后系统按规则快照评定一次）：
+-- 完整保存当时选定的规则快照（弓种、箭数、最少回合、通过标准、有效期）与证据窗口，
+-- 后续规则调整、窗口改选都不会改写历史评定。
+CREATE TABLE IF NOT EXISTS cert_eval (
+  id                   BIGINT        NOT NULL AUTO_INCREMENT,
+  application_id       BIGINT        NOT NULL,
+  eval_seq             INT           NOT NULL COMMENT '评定序号：首次 1，补充证据 +1',
+  rule_id              BIGINT        NOT NULL COMMENT '评定使用的规则版本 id',
+  rule_code            VARCHAR(24)   NOT NULL,
+  rule_version         INT           NOT NULL,
+  snap_group_size      INT           NOT NULL COMMENT '规则快照：每组箭数',
+  snap_min_rounds      INT           NOT NULL COMMENT '规则快照：最少回合数',
+  snap_min_average     DECIMAL(4,2)  NOT NULL COMMENT '规则快照：平均环下限',
+  snap_validity_months INT           NOT NULL COMMENT '规则快照：有效期月数',
+  window_start         DATETIME      NOT NULL,
+  window_end           DATETIME      NOT NULL,
+  round_count          INT           NOT NULL COMMENT '本次评定采信回合数',
+  arrow_total          INT           NOT NULL COMMENT '证据箭支总数',
+  total_score          INT           NOT NULL COMMENT '证据总环数',
+  avg_score            DECIMAL(5,2)  NOT NULL COMMENT '证据平均环/支',
+  pass_flag            TINYINT(1)    NOT NULL COMMENT '系统预评是否达到通过标准（待复核结果）',
+  eval_message         VARCHAR(500)  NOT NULL COMMENT '预评说明：采信情况与达标判定',
+  created_by           VARCHAR(32)   NOT NULL,
+  created_at           DATETIME      NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_cert_eval_seq (application_id, eval_seq),
+  KEY idx_cert_eval_rule (rule_id),
+  CONSTRAINT fk_cert_eval_app  FOREIGN KEY (application_id) REFERENCES cert_application (id),
+  CONSTRAINT fk_cert_eval_rule FOREIGN KEY (rule_id) REFERENCES cert_rule (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 评定-回合：本次评定具体采信了哪些计分回合（必须 SUBMITTED、弓种/射距/箭数匹配且落在窗口内）
+CREATE TABLE IF NOT EXISTS cert_eval_round (
+  id        BIGINT NOT NULL AUTO_INCREMENT,
+  eval_id   BIGINT NOT NULL,
+  round_id  BIGINT NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_cert_eval_round (eval_id, round_id),
+  KEY idx_cer_round (round_id),
+  CONSTRAINT fk_cer_eval  FOREIGN KEY (eval_id) REFERENCES cert_eval (id),
+  CONSTRAINT fk_cer_round FOREIGN KEY (round_id) REFERENCES rounds (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 状态轨迹：建立 / 系统预评 / 通过 / 驳回 / 要求补充 / 补充重评 / 撤回 / 被取代，全程留痕
+CREATE TABLE IF NOT EXISTS cert_log (
+  id             BIGINT       NOT NULL AUTO_INCREMENT,
+  application_id BIGINT       NOT NULL,
+  action         VARCHAR(24)  NOT NULL COMMENT 'CREATE / EVAL / APPROVE / REJECT / NEED_MORE / RESUBMIT / WITHDRAW / SUPERSEDE',
+  operator       VARCHAR(32)  NOT NULL,
+  role           VARCHAR(16)  NOT NULL COMMENT 'COACH 教练 / SYSTEM 认证系统',
+  detail         VARCHAR(500) NULL,
+  created_at     DATETIME     NOT NULL,
+  PRIMARY KEY (id),
+  KEY idx_cert_log_app (application_id),
+  CONSTRAINT fk_cert_log_app FOREIGN KEY (application_id) REFERENCES cert_application (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- cert_rule：6 行（RECURVE-50 同时存在已停用 v1 与现行 v2，演示版本化规则）
+INSERT INTO cert_rule (`id`, `rule_code`, `version`, `bow_type`, `distance`, `group_size`, `min_rounds`, `min_average`, `validity_months`, `status`, `note`, `created_by`, `created_at`) VALUES (1, 'RECURVE-10', 1, 'RECURVE', 10, 6, 1, 6.00, 12, 'ACTIVE', '反曲弓 10 米基础认证：窗口平均每支箭不低于 6 环', '张岩', '2026-09-01 10:00:00');
+INSERT INTO cert_rule (`id`, `rule_code`, `version`, `bow_type`, `distance`, `group_size`, `min_rounds`, `min_average`, `validity_months`, `status`, `note`, `created_by`, `created_at`) VALUES (2, 'RECURVE-30', 1, 'RECURVE', 30, 6, 2, 7.00, 12, 'ACTIVE', '反曲弓 30 米认证：窗口内至少 2 个完成回合，平均不低于 7 环', '张岩', '2026-09-01 10:00:00');
+INSERT INTO cert_rule (`id`, `rule_code`, `version`, `bow_type`, `distance`, `group_size`, `min_rounds`, `min_average`, `validity_months`, `status`, `note`, `created_by`, `created_at`) VALUES (3, 'RECURVE-50', 1, 'RECURVE', 50, 6, 1, 7.50, 12, 'RETIRED', '反曲弓 50 米认证旧版：平均下限 7.5 环（已被 v2 取代，历史认证仍按本快照）', '张岩', '2026-09-01 10:00:00');
+INSERT INTO cert_rule (`id`, `rule_code`, `version`, `bow_type`, `distance`, `group_size`, `min_rounds`, `min_average`, `validity_months`, `status`, `note`, `created_by`, `created_at`) VALUES (4, 'RECURVE-50', 2, 'RECURVE', 50, 6, 1, 8.00, 12, 'ACTIVE', '反曲弓 50 米认证现行版：平均环下限由 7.5 上调至 8.0', '张岩', '2026-09-18 10:00:00');
+INSERT INTO cert_rule (`id`, `rule_code`, `version`, `bow_type`, `distance`, `group_size`, `min_rounds`, `min_average`, `validity_months`, `status`, `note`, `created_by`, `created_at`) VALUES (5, 'COMPOUND-30', 1, 'COMPOUND', 30, 12, 1, 8.00, 12, 'ACTIVE', '复合弓 30 米认证：12 支组完成回合，平均不低于 8 环', '王铮', '2026-09-01 10:00:00');
+INSERT INTO cert_rule (`id`, `rule_code`, `version`, `bow_type`, `distance`, `group_size`, `min_rounds`, `min_average`, `validity_months`, `status`, `note`, `created_by`, `created_at`) VALUES (6, 'TRADITIONAL-18', 1, 'TRADITIONAL', 18, 6, 1, 6.00, 12, 'ACTIVE', '传统弓 18 米认证：窗口平均每支箭不低于 6 环', '苏禾', '2026-09-01 10:00:00');
+
+-- cert_application：3 行（一笔现行有效 / 一笔已过期 / 一笔已撤回，覆盖会员可用状态变化）
+INSERT INTO cert_application (`id`, `app_no`, `member_id`, `bow_type`, `distance`, `window_start`, `window_end`, `status`, `eval_seq`, `reviewed_by`, `reviewed_at`, `review_note`, `valid_from`, `valid_until`, `withdrawn_by`, `withdrawn_at`, `withdraw_reason`, `created_by`, `created_at`) VALUES (1, 'C20260920001', 1, 'RECURVE', 50, '2026-09-19 00:00:00', '2026-09-19 23:59:59', 'APPROVED', 1, '李慕白', '2026-09-20 10:05:00', '证据达标，复核通过', '2026-09-20 10:05:00', '2027-09-20 10:05:00', NULL, NULL, NULL, '李慕白', '2026-09-20 09:40:00');
+INSERT INTO cert_application (`id`, `app_no`, `member_id`, `bow_type`, `distance`, `window_start`, `window_end`, `status`, `eval_seq`, `reviewed_by`, `reviewed_at`, `review_note`, `valid_from`, `valid_until`, `withdrawn_by`, `withdrawn_at`, `withdraw_reason`, `created_by`, `created_at`) VALUES (2, 'C20250911001', 2, 'TRADITIONAL', 18, '2025-09-10 00:00:00', '2025-09-10 23:59:59', 'APPROVED', 1, '苏禾', '2025-09-11 11:00:00', '历史认证，到期需重新评定', '2025-09-11 11:00:00', '2026-09-11 11:00:00', NULL, NULL, NULL, '苏禾', '2025-09-11 10:30:00');
+INSERT INTO cert_application (`id`, `app_no`, `member_id`, `bow_type`, `distance`, `window_start`, `window_end`, `status`, `eval_seq`, `reviewed_by`, `reviewed_at`, `review_note`, `valid_from`, `valid_until`, `withdrawn_by`, `withdrawn_at`, `withdraw_reason`, `created_by`, `created_at`) VALUES (3, 'C20260917001', 4, 'COMPOUND', 30, '2026-09-16 00:00:00', '2026-09-16 23:59:59', 'WITHDRAWN', 1, '王铮', '2026-09-17 09:30:00', '证据达标，复核通过', '2026-09-17 09:30:00', '2027-09-17 09:30:00', '王铮', '2026-09-25 15:00:00', '抽查发现证据窗口与实际训练记录不符，撤回并要求重新评定', '王铮', '2026-09-17 09:00:00');
+
+-- cert_eval：每笔申请一次评定，规则快照随评定固化
+INSERT INTO cert_eval (`id`, `application_id`, `eval_seq`, `rule_id`, `rule_code`, `rule_version`, `snap_group_size`, `snap_min_rounds`, `snap_min_average`, `snap_validity_months`, `window_start`, `window_end`, `round_count`, `arrow_total`, `total_score`, `avg_score`, `pass_flag`, `eval_message`, `created_by`, `created_at`) VALUES (1, 1, 1, 3, 'RECURVE-50', 1, 6, 1, 7.50, 12, '2026-09-19 00:00:00', '2026-09-19 23:59:59', 1, 6, 58, 9.67, 1, '证据窗口内 1 个回合共 6 支箭，总环 58，平均 9.67 环/支；通过标准：≥1 回合且平均 ≥7.50，系统预评达标', '李慕白', '2026-09-20 09:40:00');
+INSERT INTO cert_eval (`id`, `application_id`, `eval_seq`, `rule_id`, `rule_code`, `rule_version`, `snap_group_size`, `snap_min_rounds`, `snap_min_average`, `snap_validity_months`, `window_start`, `window_end`, `round_count`, `arrow_total`, `total_score`, `avg_score`, `pass_flag`, `eval_message`, `created_by`, `created_at`) VALUES (2, 2, 1, 6, 'TRADITIONAL-18', 1, 6, 1, 6.00, 12, '2025-09-10 00:00:00', '2025-09-10 23:59:59', 1, 6, 40, 6.67, 1, '证据窗口内 1 个回合共 6 支箭，总环 40，平均 6.67 环/支；通过标准：≥1 回合且平均 ≥6.00，系统预评达标', '苏禾', '2025-09-11 10:30:00');
+INSERT INTO cert_eval (`id`, `application_id`, `eval_seq`, `rule_id`, `rule_code`, `rule_version`, `snap_group_size`, `snap_min_rounds`, `snap_min_average`, `snap_validity_months`, `window_start`, `window_end`, `round_count`, `arrow_total`, `total_score`, `avg_score`, `pass_flag`, `eval_message`, `created_by`, `created_at`) VALUES (3, 3, 1, 5, 'COMPOUND-30', 1, 12, 1, 8.00, 12, '2026-09-16 00:00:00', '2026-09-16 23:59:59', 1, 12, 112, 9.33, 1, '证据窗口内 1 个回合共 12 支箭，总环 112，平均 9.33 环/支；通过标准：≥1 回合且平均 ≥8.00，系统预评达标', '王铮', '2026-09-17 09:00:00');
+
+-- cert_eval_round：三笔评定分别采信回合 6 / 13 / 3
+INSERT INTO cert_eval_round (`id`, `eval_id`, `round_id`) VALUES (1, 1, 6);
+INSERT INTO cert_eval_round (`id`, `eval_id`, `round_id`) VALUES (2, 2, 13);
+INSERT INTO cert_eval_round (`id`, `eval_id`, `round_id`) VALUES (3, 3, 3);
+
+-- cert_log：建立 / 系统预评 / 复核结论全程留痕
+INSERT INTO cert_log (`id`, `application_id`, `action`, `operator`, `role`, `detail`, `created_at`) VALUES (1, 1, 'CREATE', '李慕白', 'COACH', '建立认证申请：陈子昂 · 反曲弓 50 米 · 规则 RECURVE-50 v1；证据窗口 2026-09-19 00:00 ~ 2026-09-19 23:59', '2026-09-20 09:40:00');
+INSERT INTO cert_log (`id`, `application_id`, `action`, `operator`, `role`, `detail`, `created_at`) VALUES (2, 1, 'EVAL', '认证系统', 'SYSTEM', '系统预评达标：1 回合 6 支箭平均 9.67 环（标准 ≥7.50），提交复核', '2026-09-20 09:40:00');
+INSERT INTO cert_log (`id`, `application_id`, `action`, `operator`, `role`, `detail`, `created_at`) VALUES (3, 1, 'APPROVE', '李慕白', 'COACH', '复核通过：认证 2026-09-20 生效，有效期至 2027-09-20；适用范围：反曲弓 50 米及以内射距', '2026-09-20 10:05:00');
+INSERT INTO cert_log (`id`, `application_id`, `action`, `operator`, `role`, `detail`, `created_at`) VALUES (4, 2, 'CREATE', '苏禾', 'COACH', '建立认证申请：林悦 · 传统弓 18 米 · 规则 TRADITIONAL-18 v1；证据窗口 2025-09-10 00:00 ~ 2025-09-10 23:59', '2025-09-11 10:30:00');
+INSERT INTO cert_log (`id`, `application_id`, `action`, `operator`, `role`, `detail`, `created_at`) VALUES (5, 2, 'EVAL', '认证系统', 'SYSTEM', '系统预评达标：1 回合 6 支箭平均 6.67 环（标准 ≥6.00），提交复核', '2025-09-11 10:30:00');
+INSERT INTO cert_log (`id`, `application_id`, `action`, `operator`, `role`, `detail`, `created_at`) VALUES (6, 2, 'APPROVE', '苏禾', 'COACH', '复核通过：认证 2025-09-11 生效，有效期至 2026-09-11；适用范围：传统弓 18 米及以内射距', '2025-09-11 11:00:00');
+INSERT INTO cert_log (`id`, `application_id`, `action`, `operator`, `role`, `detail`, `created_at`) VALUES (7, 3, 'CREATE', '王铮', 'COACH', '建立认证申请：孙嘉 · 复合弓 30 米 · 规则 COMPOUND-30 v1；证据窗口 2026-09-16 00:00 ~ 2026-09-16 23:59', '2026-09-17 09:00:00');
+INSERT INTO cert_log (`id`, `application_id`, `action`, `operator`, `role`, `detail`, `created_at`) VALUES (8, 3, 'EVAL', '认证系统', 'SYSTEM', '系统预评达标：1 回合 12 支箭平均 9.33 环（标准 ≥8.00），提交复核', '2026-09-17 09:00:00');
+INSERT INTO cert_log (`id`, `application_id`, `action`, `operator`, `role`, `detail`, `created_at`) VALUES (9, 3, 'APPROVE', '王铮', 'COACH', '复核通过：认证 2026-09-17 生效，有效期至 2027-09-17；适用范围：复合弓 30 米及以内射距', '2026-09-17 09:30:00');
+INSERT INTO cert_log (`id`, `application_id`, `action`, `operator`, `role`, `detail`, `created_at`) VALUES (10, 3, 'WITHDRAW', '王铮', 'COACH', '撤回认证：抽查发现证据窗口与实际训练记录不符，撤回并要求重新评定', '2026-09-25 15:00:00');

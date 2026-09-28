@@ -9,10 +9,11 @@ WORKDIR /app
 # 注意：这里【不要】再用 --mount=type=cache,target=/root/.m2
 # （挂上 cache 会把镜像里预热好的 /root/.m2 遮住，反而要重新下载）
 COPY pom.xml settings.xml ./
-RUN mvn -s settings.xml -B -q dependency:go-offline
+RUN mvn -s settings.xml -B -q dependency:go-offline -P '!integration-tests'
 
 COPY src ./src
-RUN mvn -s settings.xml -B -q package -DskipTests
+# 停用 integration-tests profile：镜像构建不下载 H2 / 测试依赖，也不编译测试代码
+RUN mvn -s settings.xml -B -q package -Dmaven.test.skip=true -P '!integration-tests'
 
 # ===== 运行阶段 =====
 ARG DOCKER_REGISTRY=docker.io/library/

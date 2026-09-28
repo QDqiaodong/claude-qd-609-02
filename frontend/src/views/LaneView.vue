@@ -23,6 +23,7 @@
 
       <div class="rule-tip">
         绿色 = 开放，可点开台；深青 = 占用中，可点收台；灰色 = 维护中，禁止开台；红色 = 安全锁定（停射事件未放行，禁止开台与收台）。开台按「单价 × 时长 × 会员折扣」预扣余额。
+        <b>30 / 50 米为认证射距：会员须持有覆盖该射距的当前有效弓种认证（认证射距 ≥ 箭道射距），认证过期 / 撤回 / 被取代后开台将被拒绝。</b>
       </div>
 
       <div class="hall">
@@ -77,9 +78,17 @@
       </div>
       <el-form label-width="84px">
         <el-form-item label="会员">
-          <el-select v-model="openForm.memberId" placeholder="请选择会员" style="width: 100%">
+          <el-select v-model="openForm.memberId" placeholder="请选择会员" style="width: 100%" @change="loadMemberCerts">
             <el-option v-for="m in members" :key="m.id" :label="`${m.name}（${m.cardNo}）`" :value="m.id" />
           </el-select>
+        </el-form-item>
+        <el-form-item v-if="pick && gatedDistances.includes(pick.distance)" label="认证识别">
+          <el-tag size="small" :type="distanceCertOk ? 'success' : 'danger'" effect="dark">
+            {{ distanceCertOk ? `持有覆盖 ${pick.distance} 米的有效认证` : `无覆盖 ${pick.distance} 米的有效认证` }}
+          </el-tag>
+          <span class="muted" style="margin-left: 8px">
+            {{ distanceCertText }}
+          </span>
         </el-form-item>
         <el-form-item label="时长">
           <el-input-number v-model="openForm.hours" :min="1" :max="options.maxOpenHours || 8" />
@@ -121,11 +130,13 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { laneApi, memberApi, money } from '../api'
+import { certApi, laneApi, memberApi, money } from '../api'
 
 const lanes = ref([])
 const members = ref([])
 const options = ref({})
+const certOptions = ref({ gatedDistances: [] })
+const memberCerts = ref([])
 const filterDistance = ref(null)
 const filterStatus = ref(null)
 const pickId = ref(null)
@@ -137,6 +148,16 @@ const createForm = reactive({ laneNo: '', distance: 18, targetType: '三联靶',
 
 const pick = computed(() => lanes.value.find((item) => item.id === pickId.value) || null)
 const pickMember = computed(() => members.value.find((m) => m.id === openForm.memberId) || null)
+const gatedDistances = computed(() => certOptions.value.gatedDistances || [30, 50])
+const distanceCertOk = computed(() => {
+  if (!pick.value) return false
+  return memberCerts.value.some((c) => c.distance >= pick.value.distance)
+})
+const distanceCertText = computed(() => {
+  const hit = memberCerts.value.find((c) => pick.value && c.distance >= pick.value.distance)
+  return hit ? `${hit.bowTypeName} ${hit.distance} 米认证，有效期至 ${String(hit.validUntil).slice(0, 10)}`
+    : '请先在「认证」页完成弓种能力认证'
+})
 
 const previewCost = computed(() => {
   if (!pick.value || !pickMember.value) return '0.00'
@@ -165,7 +186,15 @@ async function loadMembers() {
   members.value = await memberApi.options()
 }
 
-function pickLane(lane) {
+async function loadMemberCerts() {
+  memberCerts.value = []
+  if (openForm.memberId) {
+    const data = await certApi.memberCerts(openForm.memberId)
+    memberCerts.value = data.current || []
+  }
+}
+
+async function pickLane(lane) {
   pickId.value = lane.id
   if (lane.status === 'LOCKED') {
     ElMessage.warning(`${lane.laneNo} 处于安全锁定，停射事件放行前禁止开台与收台`)
@@ -174,6 +203,8 @@ function pickLane(lane) {
   if (lane.status === 'OPEN') {
     openForm.memberId = members.value.length ? members.value[0].id : null
     openForm.hours = 2
+    memberCerts.value = []
+    if (openForm.memberId) await loadMemberCerts()
     openVisible.value = true
     return
   }
@@ -221,6 +252,7 @@ async function submitCreate() {
 
 onMounted(async () => {
   options.value = await laneApi.options()
+  certOptions.value = await certApi.options()
   await loadLanes()
   await loadMembers()
 })

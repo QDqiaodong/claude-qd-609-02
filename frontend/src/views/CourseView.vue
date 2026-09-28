@@ -59,7 +59,7 @@
     <el-dialog v-model="enrollVisible" :title="`报名 · ${pick ? pick.courseName : ''}`" width="400px">
       <el-form label-width="70px">
         <el-form-item label="会员">
-          <el-select v-model="enrollMemberId" placeholder="请选择会员" style="width: 100%">
+          <el-select v-model="enrollMemberId" placeholder="请选择会员" style="width: 100%" @change="loadMemberCerts">
             <el-option
               v-for="m in members"
               :key="m.id"
@@ -67,6 +67,14 @@
               :value="m.id"
             />
           </el-select>
+        </el-form-item>
+        <el-form-item label="弓种认证">
+          <div v-if="enrollCerts.length" class="cert-chips">
+            <el-tag v-for="c in enrollCerts" :key="c.applicationId" size="small" type="success" effect="plain">
+              {{ c.bowTypeName }} {{ c.distance }}米 · 至 {{ shortDate(c.validUntil) }}
+            </el-tag>
+          </div>
+          <span v-else class="muted">当前无有效弓种认证（30/50 米课程训练与弓具租借将受限）</span>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -107,12 +115,13 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { courseApi, memberApi, shortTime } from '../api'
+import { certApi, courseApi, memberApi, shortDate, shortTime } from '../api'
 
 const courses = ref([])
 const members = ref([])
 const options = ref({})
 const filterLevel = ref(null)
+const enrollCerts = ref([])
 
 const enrollVisible = ref(false)
 const createVisible = ref(false)
@@ -149,7 +158,17 @@ async function loadCourses() {
 function openEnroll(course) {
   pick.value = course
   enrollMemberId.value = members.value.length ? members.value[0].id : null
+  enrollCerts.value = []
+  if (enrollMemberId.value) loadMemberCerts()
   enrollVisible.value = true
+}
+
+async function loadMemberCerts() {
+  enrollCerts.value = []
+  if (enrollMemberId.value) {
+    const data = await certApi.memberCerts(enrollMemberId.value)
+    enrollCerts.value = data.current || []
+  }
 }
 
 async function submitEnroll() {
@@ -298,5 +317,11 @@ onMounted(async () => {
   margin-top: auto;
   padding-top: 4px;
   border-top: 1px dashed var(--line);
+}
+
+.cert-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 </style>

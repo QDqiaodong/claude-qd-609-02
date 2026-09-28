@@ -40,6 +40,7 @@ public final class MemberDtos {
             BigDecimal totalSpend,
             BigDecimal discount,
             Long roundCount,
-            Integer bestScore) {
+            Integer bestScore,
+            Integer validCertCount) {
     }
 }

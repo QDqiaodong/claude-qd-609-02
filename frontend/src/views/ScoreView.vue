@@ -29,6 +29,11 @@
             {{ size }} 支
           </el-radio-button>
         </el-radio-group>
+        <el-radio-group v-model="startForm.bowType">
+          <el-radio-button value="RECURVE">反曲弓</el-radio-button>
+          <el-radio-button value="COMPOUND">复合弓</el-radio-button>
+          <el-radio-button value="TRADITIONAL">传统弓</el-radio-button>
+        </el-radio-group>
         <el-button type="primary" @click="startRound">开打</el-button>
       </div>
     </div>
@@ -77,7 +82,7 @@
                 </el-tag>
                 <el-tag v-if="current.round.personalBest" size="small" type="danger" effect="dark">个人最好成绩</el-tag>
               </div>
-              <div class="muted">{{ shortTime(current.round.startTime) }} · {{ current.round.distance }}米</div>
+              <div class="muted">{{ shortTime(current.round.startTime) }} · {{ current.round.bowTypeName }} · {{ current.round.distance }}米</div>
             </div>
 
             <div v-if="current.round.status === 'PAUSED'" class="pause-tip">
@@ -150,6 +155,11 @@
         <el-table-column label="箭道" width="110">
           <template #default="{ row }">{{ row.laneNo }} · {{ row.distance }}m</template>
         </el-table-column>
+        <el-table-column label="弓种" width="90">
+          <template #default="{ row }">
+            <el-tag size="small" effect="plain">{{ row.bowTypeName }}</el-tag>
+          </template>
+        </el-table-column>
         <el-table-column prop="startTime" label="开始时间" width="150" :formatter="(r) => shortTime(r.startTime)" />
         <el-table-column label="箭支" width="90">
           <template #default="{ row }">{{ row.shotCount }} / {{ row.arrowCount }}</template>
@@ -188,7 +198,7 @@ const keypad = ref({ rings: [], groupSizes: [6, 12] })
 const current = ref(null)
 const details = reactive({})
 
-const startForm = reactive({ memberId: null, laneId: null, arrowCount: 6 })
+const startForm = reactive({ memberId: null, laneId: null, arrowCount: 6, bowType: 'RECURVE' })
 
 const canShoot = computed(() => !!current.value && current.value.round.status === 'ONGOING')
 const canUndo = computed(() => canShoot.value && current.value.arrows.length > 0)
@@ -255,6 +265,7 @@ async function startRound() {
   const detail = await roundApi.start({
     memberId: startForm.memberId,
     laneId: startForm.laneId,
+    bowType: startForm.bowType,
     arrowCount: startForm.arrowCount
   })
   current.value = detail

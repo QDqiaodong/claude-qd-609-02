@@ -92,6 +92,53 @@ public final class RangeDict {
             "GEAR", "护具",
             "ARROW", "箭支");
 
+    // ---------------- 弓种能力认证 ----------------
+    /** 可认证的弓种（器材类型的弓类子集） */
+    private static final Map<String, String> BOW_TYPE = Map.of(
+            "RECURVE", "反曲弓",
+            "COMPOUND", "复合弓",
+            "TRADITIONAL", "传统弓");
+
+    /** 开台时需要有效弓种认证的射距（米）：30 / 50 米为认证射距，10 / 18 米对所有会员开放 */
+    public static final List<Integer> CERT_GATED_DISTANCES = List.of(30, 50);
+
+    /** 认证申请状态机：待复核 → 已通过 / 已驳回 / 待补充证据；已通过的认证可撤回或被取代；已过期为展示态 */
+    private static final Map<String, String> CERT_STATUS = Map.of(
+            "PENDING", "待复核",
+            "APPROVED", "已通过",
+            "REJECTED", "已驳回",
+            "NEED_MORE", "待补充证据",
+            "WITHDRAWN", "已撤回",
+            "SUPERSEDED", "已被取代",
+            "EXPIRED", "已过期");
+
+    /** 认证规则状态 */
+    private static final Map<String, String> CERT_RULE_STATUS = Map.of(
+            "ACTIVE", "现行",
+            "RETIRED", "已停用");
+
+    /** 认证复核动作 */
+    private static final Map<String, String> CERT_DECISION = Map.of(
+            "APPROVE", "通过",
+            "REJECT", "驳回",
+            "NEED_MORE", "要求补充证据");
+
+    /** 认证台角色 */
+    private static final Map<String, String> CERT_ROLE = Map.of(
+            "COACH", "教练",
+            "SYSTEM", "认证系统");
+
+    /** 认证状态轨迹动作 */
+    private static final Map<String, String> CERT_ACTION = Map.ofEntries(
+            Map.entry("CREATE", "建立认证申请"),
+            Map.entry("EVAL", "系统预评"),
+            Map.entry("APPROVE", "复核通过"),
+            Map.entry("REJECT", "复核驳回"),
+            Map.entry("NEED_MORE", "要求补充证据"),
+            Map.entry("RESUBMIT", "补充证据重新评定"),
+            Map.entry("WITHDRAW", "撤回认证"),
+            Map.entry("SUPERSEDE", "被新认证取代"));
+
     private static final Map<String, String> EQUIP_STATUS = Map.of(
             "INSTOCK", "在库",
             "RENTED", "租出",
@@ -287,6 +334,48 @@ public final class RangeDict {
 
     public static String equipTypeName(String type) {
         return type == null ? "" : EQUIP_TYPE.getOrDefault(type, type);
+    }
+
+    // ---------------- 弓种能力认证取值 ----------------
+
+    public static boolean isValidBowType(String type) {
+        return type != null && BOW_TYPE.containsKey(type);
+    }
+
+    public static String bowTypeName(String type) {
+        return type == null ? "" : BOW_TYPE.getOrDefault(type, type);
+    }
+
+    public static boolean isValidCertStatus(String status) {
+        return status != null && CERT_STATUS.containsKey(status);
+    }
+
+    public static String certStatusName(String status) {
+        return status == null ? "" : CERT_STATUS.getOrDefault(status, status);
+    }
+
+    public static boolean isValidCertRuleStatus(String status) {
+        return status != null && CERT_RULE_STATUS.containsKey(status);
+    }
+
+    public static String certRuleStatusName(String status) {
+        return status == null ? "" : CERT_RULE_STATUS.getOrDefault(status, status);
+    }
+
+    public static boolean isValidCertDecision(String decision) {
+        return decision != null && CERT_DECISION.containsKey(decision);
+    }
+
+    public static String certDecisionName(String decision) {
+        return decision == null ? "" : CERT_DECISION.getOrDefault(decision, decision);
+    }
+
+    public static String certRoleName(String role) {
+        return role == null ? "" : CERT_ROLE.getOrDefault(role, role);
+    }
+
+    public static String certActionName(String action) {
+        return action == null ? "" : CERT_ACTION.getOrDefault(action, action);
     }
 
     public static boolean isValidEquipStatus(String status) {

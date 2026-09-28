@@ -86,8 +86,7 @@ export const safetyApi = {
 }
 
 /** 模块七：馆内团体淘汰赛计分台（独立的一套计分台） */
-export const tournamentApi = {
-  options: () => http.get('/tournament/options'),
+export const tournamentApi = {  options: () => http.get('/tournament/options'),
   list: () => http.get('/tournament/list'),
   detail: (id) => http.get(`/tournament/${id}`),
   create: (data) => http.post('/tournament/create', data),
@@ -102,6 +101,22 @@ export const tournamentApi = {
   shootoffArrow: (matchId, data) => http.post(`/tournament/matches/${matchId}/shootoff/arrows`, data),
   lockShootoff: (matchId, data) => http.post(`/tournament/matches/${matchId}/shootoff/lock`, data),
   confirmWinner: (matchId, data) => http.post(`/tournament/matches/${matchId}/confirm-winner`, data)
+}
+
+/** 模块八：弓种能力认证（版本化规则 · 证据窗口评定 · 教练复核 · 有效期管理） */
+export const certApi = {
+  options: () => http.get('/cert/options'),
+  rules: () => http.get('/cert/rules'),
+  createRule: (data) => http.post('/cert/rules', data),
+  newVersion: (id, data) => http.post(`/cert/rules/${id}/new-version`, data),
+  retireRule: (id, operator) => http.post(`/cert/rules/${id}/retire`, { operator }),
+  list: (params) => http.get('/cert/applications', { params }),
+  detail: (id) => http.get(`/cert/applications/${id}`),
+  create: (data) => http.post('/cert/applications', data),
+  decide: (id, data) => http.post(`/cert/applications/${id}/decide`, data),
+  resubmit: (id, data) => http.post(`/cert/applications/${id}/resubmit`, data),
+  withdraw: (id, data) => http.post(`/cert/applications/${id}/withdraw`, data),
+  memberCerts: (memberId) => http.get(`/cert/members/${memberId}`)
 }
 
 export const statsApi = {
